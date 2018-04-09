@@ -1,0 +1,9 @@
+[package]
+name = "superimager"
+version = "0.2.0"
+
+[dependencies]
+rocket = "0.3.5"
+rocket_codegen = "0.3.5"
+reqwest = "0.8.2"
+image = "0.18.0"
