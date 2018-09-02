@@ -1,0 +1,67 @@
+@name Superimager
+@inputs Screen:wirelink 
+@persist URL:string Limit Chunk
+@persist Data:string Length I Offset
+
+if(tickClk()) {
+    if(I < Length) {
+        while(perf(Limit) & I < Length) {
+            Offset = I + Chunk
+            Screen[I - 1, string] = Data:sub(I, Offset)
+            I = Offset
+        }
+    } else {
+        runOnTick(0)
+    }
+} elseif(first() || changed(Screen)) {
+    URL = "http://_:8080/convert/%s"
+    Limit = 50
+    Chunk = 64
+    
+    function string string:args(I) {
+        return This:explode(" ")[I, string]
+    }
+    
+    function wirelink:colour(I) {
+        This[1048569] = I
+    }
+    
+    function wirelink:clear(I) {
+        This[1048574] = I
+    }
+    
+    function wirelink:width(I) {
+        This[1048573] = I
+    }
+    
+    function wirelink:height(I) {
+        This[1048572] = I
+    }
+
+    function wirelink:draw(I) {
+        This[1048575] = I
+    }
+    
+    runOnChat(1)
+    runOnHTTP(1)
+
+    Screen:colour(1)
+    Screen:clear(1)
+} elseif(chatClk()) {
+    L = lastSaid()
+
+    if(L:args(1) == "!i") {
+        hideChat(1)
+        httpRequest(format(URL, httpUrlEncode(L:args(2))))
+        I = 1
+    }
+} elseif(httpClk()) {
+    Data = httpData()
+    Length = Data:length()
+
+    # Set image dimensions.    
+    Screen:width(sqrt(Length / 3))
+    Screen:height(sqrt(Length / 3))
+    
+    runOnTick(1)
+}
