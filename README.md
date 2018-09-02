@@ -1,7 +1,5 @@
 # Superimager
-An Expression 2/Rust tool for rendering images in Garry's Mod at an insane speed.
-
-![Example Render](https://i.imgur.com/5vbIr1v.jpg)
+![Example Render](images/example.jpeg)
 
 Superimager is the product of countless of hours of research and experimentation. It is capable of rendering significantly faster than other scripts by offloading as much work as possible to the backend, and writing to the screen's image buffer directly through a previously undiscovered method.
 
