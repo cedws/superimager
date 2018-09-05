@@ -1,11 +1,12 @@
 #![feature(plugin)]
 #![plugin(rocket_codegen)]
 
+extern crate flate2;
 extern crate image;
 extern crate reqwest;
 extern crate rocket;
 
-use std::io::Cursor;
+use std::io::{Cursor, Write};
 
 use rocket::config::{Config, Environment};
 use rocket::http::{RawStr, Status};
@@ -13,20 +14,16 @@ use rocket::response::Response;
 
 use image::{imageops, FilterType, ImageBuffer, RgbImage};
 
+use flate2::write::GzEncoder;
+use flate2::Compression;
+
 const MAX_OUTPUT_SIZE: f32 = 512.0;
 
 // Resizes an input image to fit a maximum frame size whilst preserving the original image ratio.
 #[get("/<img>")]
 fn convert(img: &RawStr) -> Result<Response<'static>, Status> {
-    let url = match img.url_decode() {
-        Ok(n) => n,
-        Err(_) => return Err(Status::BadRequest),
-    };
-
-    let mut resp = match reqwest::get(&url) {
-        Ok(n) => n,
-        Err(_) => return Err(Status::BadRequest),
-    };
+    let url = img.url_decode().map_err(|_| Status::BadRequest)?;
+    let mut resp = reqwest::get(&url).map_err(|_| Status::BadRequest)?;
 
     println!("Converting {}.", &url);
 
@@ -34,10 +31,9 @@ fn convert(img: &RawStr) -> Result<Response<'static>, Status> {
     resp.copy_to(&mut buf)
         .expect("Failed to load response data.");
 
-    let original = match image::load_from_memory(buf.as_slice()) {
-        Ok(n) => n,
-        Err(_) => return Err(Status::BadRequest),
-    }.to_rgb();
+    let original = image::load_from_memory(buf.as_slice())
+        .map_err(|_| Status::BadRequest)?
+        .to_rgb();
 
     // Assert that the image has valid dimensions.
     assert!(original.width() > 0);
@@ -70,8 +66,13 @@ fn convert(img: &RawStr) -> Result<Response<'static>, Status> {
     assert_eq!(rescaled.width(), size as u32);
     assert_eq!(rescaled.height(), size as u32);
 
+    // TODO: Don't assume the client supports GZIP compression.
+    let mut enc = GzEncoder::new(Vec::new(), Compression::default());
+    enc.write_all(&rescaled.into_raw()).unwrap();
+
     Response::build()
-        .sized_body(Cursor::new(rescaled.into_raw()))
+        .raw_header("Content-Encoding", "gzip")
+        .sized_body(Cursor::new(enc.finish().unwrap()))
         .ok()
 }
 
