@@ -5,7 +5,8 @@
 
 if(tickClk()) {
     if(I < Length) {
-        while(perf(Limit) & I < Length) {
+        # TODO: Potentially move some of these conditions around. Might be able to exploit short-circuit behaviour.
+        while(perf(Limit) && I < Length) {
             Offset = I + Chunk
             Screen[I - 1, string] = Data:sub(I, Offset)
             I = Offset

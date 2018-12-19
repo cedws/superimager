@@ -19,7 +19,7 @@ use flate2::Compression;
 
 const MAX_OUTPUT_SIZE: f32 = 512.0;
 
-// Resizes an input image to fit a maximum frame size whilst preserving the original image ratio.
+/// Resizes an input image to fit a maximum frame size whilst preserving the original image ratio.
 #[get("/<img>")]
 fn convert(img: &RawStr) -> Result<Response<'static>, Status> {
     let url = img.url_decode().map_err(|_| Status::BadRequest)?;
@@ -27,7 +27,7 @@ fn convert(img: &RawStr) -> Result<Response<'static>, Status> {
 
     println!("Converting {}.", &url);
 
-    let mut buf = vec![];
+    let mut buf = Vec::new();
     resp.copy_to(&mut buf)
         .expect("Failed to load response data.");
 
@@ -72,6 +72,7 @@ fn convert(img: &RawStr) -> Result<Response<'static>, Status> {
 
     Response::build()
         .raw_header("Content-Encoding", "gzip")
+        .raw_header("Connection", "keep-alive")
         .sized_body(Cursor::new(enc.finish().unwrap()))
         .ok()
 }
