@@ -1,9 +1,9 @@
-#![feature(plugin)]
-#![plugin(rocket_codegen)]
+#![feature(proc_macro_hygiene, decl_macro)]
 
 extern crate flate2;
 extern crate image;
 extern crate reqwest;
+#[macro_use]
 extern crate rocket;
 
 use std::io::{Cursor, Write};
@@ -84,7 +84,7 @@ fn main() {
         .finalize()
         .unwrap();
 
-    rocket::custom(config, true)
+    rocket::custom(config)
         .mount("/convert", routes![convert])
         .launch();
 }

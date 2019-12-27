@@ -1,11 +1,9 @@
 [package]
 name = "superimager"
-version = "0.2.1"
+version = "0.2.2"
 
 [dependencies]
-rocket = "0.3.17"
-rocket_codegen = "0.3.17"
-hyper = "0.12.16"
-reqwest = "0.9.5"
-image = "0.20.1"
-flate2 = "1.0.5"
+rocket = "0.4.2"
+image = "0.22.3"
+reqwest = "0.9.24"
+flate2 = "1.0.13"
