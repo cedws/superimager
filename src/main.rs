@@ -25,19 +25,15 @@ fn convert(img: &RawStr) -> Result<Response<'static>, Status> {
     let url = img.url_decode().map_err(|_| Status::BadRequest)?;
     let mut resp = reqwest::get(&url).map_err(|_| Status::BadRequest)?;
 
-    println!("Converting {}.", &url);
+    println!("Converting {}", &url);
 
     let mut buf = Vec::new();
     resp.copy_to(&mut buf)
-        .expect("Failed to load response data.");
+        .expect("Failed to load response data");
 
     let original = image::load_from_memory(buf.as_slice())
         .map_err(|_| Status::BadRequest)?
         .to_rgb();
-
-    // Assert that the image has valid dimensions.
-    assert!(original.width() > 0);
-    assert!(original.height() > 0);
 
     let width = original.width() as f32;
     let height = original.height() as f32;
@@ -45,9 +41,6 @@ fn convert(img: &RawStr) -> Result<Response<'static>, Status> {
     // Find the optimum output size.
     let size = (width.max(height)).min(MAX_OUTPUT_SIZE);
     let scalar = (size / width).min(size / height);
-
-    // Assert that the image scalar is greater than zero.
-    assert!(scalar > 0.0);
 
     let (xscaled, yscaled) = (scalar * width, scalar * height);
     let (xoverlay, yoverlay) = ((size - xscaled) / 2.0, (size - yscaled) / 2.0);
